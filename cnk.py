@@ -9,6 +9,7 @@ import speedtest
 import datetime
 import openai
 import time
+import json
 
 class Okno(QMainWindow):
     def __init__(self):
@@ -26,6 +27,7 @@ class Okno(QMainWindow):
         self.button2 = QtWidgets.QPushButton()
 
         self.response = ""
+        self.resp = ""
         self.iniUI()
 
         #Voice assistant functionality
@@ -101,14 +103,16 @@ class Okno(QMainWindow):
 
         try:
             self.response = self.recognizer.recognize_google(audio)
-            self.label1.setText(self.response)
-            self.engine.say(self.response)
+            self.resp = "You ~ "+str(self.response)
+            print(self.resp)
+            self.label1.setText(self.resp)
+            self.engine.say(self.resp)
             if "speed test" in self.response:
                 st = speedtest.Speedtest()
                 download_speed = st.download() / 10**6
                 upload_speed = st.upload() / 10**6
-                self.resp = f"The download speed is {download_speed:.2f} Mbps and the upload speed is {upload_speed:.2f} Mbps."
-                self.response = self.response+str(self.resp)
+                self.resp = f"AI ~ The download speed is {download_speed:.2f} Mbps and the upload speed is {upload_speed:.2f} Mbps."
+                self.response = str(self.response)+str(self.resp)+"\n\n"
                 self.label1.setText(self.response)
                 self.engine.say(self.resp)
             else:
@@ -120,20 +124,15 @@ class Okno(QMainWindow):
                     prompt=text,
                     temperature=0.7,
                     max_tokens=300
-                    )
-                self.resp = str(response['choices'][0]['text']).strip('\n\n')
-                self.response = self.response+str(self.resp)
+                )
+                self.resp = "AI ~ " + response.choices[0].text
+                self.response = str(self.response)+str(self.resp)+"\n\n"
                 self.label1.setText(self.response)
                 self.engine.say(self.resp)
         except sr.UnknownValueError:
-            self.resp = "Sorry, I did not understand that"
-            self.response = self.response+str(self.resp)
-            self.label1.setText(self.response)
-            self.engine.say(self.resp)
-        except sr.RequestError as e:
-            self.response = "Sorry, my speech service is down"
-            self.label1.setText(self.response)
-            self.engine.say(self.response)
+            self.engine.say("I am sorry, I could not understand what you said")
+        except sr.RequestError:
+            self.engine.say("I am sorry, I could not process your request")
                 
     def update_label1_text(self):
         # typing text animation
@@ -151,72 +150,6 @@ class Okno(QMainWindow):
         gradient.setColorAt(1.0, QColor(0, 0, 0))
         painter.setBrush(gradient)
         painter.drawRect(self.rect())
-
-'''
-    def speak(text: str) -> None:
-        self.engine.say(text)
-        self.engine.runAndWait()
-
-
-    def listen() -> str:
-        with sr.Microphone() as source:
-            self.recognizer.adjust_for_ambient_noise(source)
-            audio = self.recognizer.listen(source)
-        try:
-            text = self.recognizer.recognize_google(audio)
-            return text
-        except sr.UnknownValueError:
-            print("Could not understand audio")
-            return ""
-        except sr.RequestError as e:
-            print(f"Could not request results from Google Speech Recognition service; {e}")
-            return ""
-
-    def process_command(command: str) -> None:
-        if "internet speed" in command:
-            st = speedtest.Speedtest()
-            download_speed = st.download() / 10 ** 6
-            upload_speed = st.upload() / 10 ** 6
-            ping_speed = st.results.ping
-            speak(f"My internet speed is Download: {download_speed:.2f} Mbps, Upload: {upload_speed:.2f} Mbps, Ping: {ping_speed:.2f} ms")
-        elif "time" in command:
-            now = datetime.datetime.now()
-            current_time = now.strftime("%H:%M:%S")
-            speak(f"The current time is {current_time}")
-        elif "calculate" in command:
-            query = command.replace("calculate", "")
-            try:
-                result = str(eval(query))
-                speak(f"The result is {result}")
-            except:
-                speak("Sorry, I could not perform the calculation.")
-        elif "define" in command:
-            query = command.replace("define", "")
-            try:
-                openai.api_key = "your_api_key_here"
-                response = openai.Completion.create(
-                engine="davinci",
-                prompt=f"Define {query}",
-                temperature=0.7,
-                max_tokens=100,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0
-                )
-                definition = response.choices[0].text
-                speak(f"The definition of {query} is {definition}")
-            except:
-                speak("Sorry, I could not find a definition for that.")
-        else:
-            speak("Sorry, I did not understand the command.")
-
-    def activate() -> None:
-        self.speak("How can I help you?")
-        command = self.listen().lower()
-        self.process_command(command)
-'''
-    
-
 
 def window():
     app = QApplication(sys.argv)
