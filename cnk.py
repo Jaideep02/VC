@@ -104,7 +104,8 @@ class Okno(QMainWindow):
         try:
             self.response = self.recognizer.recognize_google(audio)
             self.resp = "You ~ "+str(self.response)
-            print(self.resp)
+            self.response = str(self.response)+self.resp+"\n\n"
+            print("I'mmm ckkkk ~ ",self.resp)
             self.label1.setText(self.resp)
             self.engine.say(self.resp)
             if "speed test" in self.response:
@@ -115,6 +116,7 @@ class Okno(QMainWindow):
                 self.response = str(self.response)+str(self.resp)+"\n\n"
                 self.label1.setText(self.response)
                 self.engine.say(self.resp)
+            # say and print date and time too in gui?
             else:
                 # Use OpenAI API to generate text response based on user input
                 text = self.response
